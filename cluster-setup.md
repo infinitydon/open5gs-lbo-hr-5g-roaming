@@ -1,20 +1,27 @@
 ## General
 
+```
 mkdir -p /var/snap/microk8s/common/
+
 cat <<EOF > /var/snap/microk8s/common/.microk8s.yaml
 ---
+
 version: 0.1.0
 addons:
+
   - name: dns
   - name: community
   - name: multus
   - name: hostpath-storage
-extraKubeletArgs:
-  --cluster-domain: cluster.local
-  --cluster-dns: 10.152.183.10
-  --cpu-manager-policy: "static"
-  --reserved-cpus: "0-2"
+    extraKubeletArgs:
+      --cluster-domain: cluster.local
+      --cluster-dns: 10.152.183.10
+      --cpu-manager-policy: "static"
+      --reserved-cpus: "0-2"
 EOF
+```
+
+```
 snap install microk8s --classic --channel=1.32/stable
 
 sudo usermod -a -G microk8s $USER
@@ -44,9 +51,13 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 curl -L https://github.com/derailed/k9s/releases/download/v0.50.9/k9s_Linux_amd64.tar.gz | tar xz
 sudo mv k9s /usr/local/bin/
 sudo chmod +x /usr/local/bin/k9s
+```
+
+
 
 ## IPX Roaming Cluster
 
+```
 wget https://github.com/DPDK/dpdk/raw/main/usertools/dpdk-devbind.py -O /usr/local/bin/dpdk-devbind.py
 
 chmod +x /usr/local/bin/dpdk-devbind.py
@@ -84,9 +95,13 @@ EOF
 chmod +x /opt/dpdk/config-sriov.sh
 
 systemctl enable config-sriov
+```
 
-## Visiting Roaming Cluster
 
+
+## Visiting/Home Roaming Cluster
+
+```
 wget https://github.com/DPDK/dpdk/raw/main/usertools/dpdk-devbind.py -O /usr/local/bin/dpdk-devbind.py
 
 chmod +x /usr/local/bin/dpdk-devbind.py
@@ -123,14 +138,19 @@ EOF
 chmod +x /opt/dpdk/config-sriov.sh
 
 systemctl enable config-sriov
+```
 
 
 
+Sample helm commands
+
+```
 helm -n roaming upgrade --install ipx-gateway ipx-vpp-vpn-ikve2-chart/ --create-namespace
 
 helm -n roaming upgrade --install hplmn-edge-gateway hUPF-vpp-vpn-ikve2-chart/ --create-namespace
 
 helm -n roaming upgrade --install vplmn-edge-gateway vUPF-vpp-vpn-ikve2-chart/ --create-namespace
+```
 
-N.B - Another interface is needed in the home and visiting workerNode with IPs in the internal netwoork of the VPP gateway side and a static route 
+N.B - Another interface is needed in the home and visiting workerNode with IPs in the internal network of the VPP gateway side and a static route 
 of 192.168.4.1 (openbao ingress controller LB IP) pointing to the VPP GW as the nexthop

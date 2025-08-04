@@ -1,32 +1,31 @@
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: coredns
-  namespace: kube-system
-data:
-  Corefile: |
-    .:53 {
-        errors
-        health {
-          lameduck 5s
+    kubectl apply -f - <<EOF
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: coredns
+      namespace: kube-system
+    data:
+      Corefile: |
+        .:53 {
+            errors
+            health {
+              lameduck 5s
+            }
+            ready
+            log . {
+              class error
+            }
+            kubernetes cluster.local in-addr.arpa ip6.arpa {
+              pods insecure
+              fallthrough in-addr.arpa ip6.arpa
+            }
+            prometheus :9153
+            forward . /etc/resolv.conf
+            cache 30
+            loop
+            reload
+            loadbalance
         }
-        ready
-        log . {
-          class error
-        }
-        kubernetes cluster.local in-addr.arpa ip6.arpa {
-          pods insecure
-          fallthrough in-addr.arpa ip6.arpa
-        }
-        prometheus :9153
-        forward . /etc/resolv.conf
-        cache 30
-        loop
-        reload
-        loadbalance
-    }
-
     5gc.mnc070.mcc999.3gppnetwork.org:53 {
         hosts {
             192.168.2.50 amf.5gc.mnc070.mcc999.3gppnetwork.org
@@ -44,7 +43,7 @@ data:
             fallthrough
         }
     }
-
+    
     5gc.mnc001.mcc001.3gppnetwork.org:53 {
         hosts {
             192.168.1.50 amf.5gc.mnc001.mcc001.3gppnetwork.org
@@ -62,8 +61,7 @@ data:
             fallthrough
         }
     }
-EOF
+    EOF
+**kubectl -n kube-system rollout restart deployment coredns**
 
-kubectl -n kube-system rollout restart deployment coredns
-
-kubectl run netshoot --rm -it --image=nicolaka/netshoot --restart=Never -- bash
+**kubectl run netshoot --rm -it --image=nicolaka/netshoot --restart=Never -- bash (to test DNS resolution)**

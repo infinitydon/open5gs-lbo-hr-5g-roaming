@@ -1,13 +1,18 @@
 ## MetaLLB Install
 
+```
 helm repo add metallb https://metallb.github.io/metallb
 helm -n kube-system install metallb metallb/metallb
+```
 
 ## Setup routes towards the VPP Gateway since metallb does not receive advertized routes
+```
 sudo ip r add 192.168.1.0/24 via 192.168.3.1
 sudo ip r add 192.168.2.0/24 via 192.168.3.1
+```
 
 ### BGP Peer to the VPP
+```
 kubectl apply -f - <<EOF
 apiVersion: metallb.io/v1beta2
 kind: BGPPeer
@@ -39,14 +44,20 @@ metadata:
 spec:
   ipAddressPools:
   - roaming-lb-pool
-EOF
+    EOF
+```
+
+
 
 ## Install Nginx ingress controller
+```
 # Add the ingress-nginx repository
+
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 
 # Install NGINX Ingress Controller with LoadBalancer (default service type)
+
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx \
   --create-namespace
@@ -60,18 +71,22 @@ kubectl create ns openbao
 LB_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
 # Generate self-signed certificate including both LB_IP and 192.168.4.1
+
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out openbao-tls.crt -keyout openbao-tls.key \
   -subj "/CN=openbao.${LB_IP}.nip.io" \
   -addext "subjectAltName=DNS:openbao.${LB_IP}.nip.io,IP:192.168.4.1"
 
 # Create TLS secret
+
 kubectl create secret tls openbao-tls \
   --cert=openbao-tls.crt \
   --key=openbao-tls.key \
   --namespace openbao
+```
 
 # Install with TLS
+```
 helm upgrade --install openbao openbao/openbao \
   --set='server.service.type=ClusterIP' \
   --set='ui.enabled=true' \
@@ -95,15 +110,19 @@ Unseal Key 5: 4BGHPEK4XU9zYTkwVij/h0xgKSPIIlb+geIN87qUJQ0t
 Initial Root Token: s.CrabD7y3pFTRUXwa6g2yD2B2  
 
 # Check seal status
+
 kubectl exec -n openbao openbao-0 -- bao status
 
 # Unseal with first key
+
 kubectl exec -n openbao openbao-0 -- bao operator unseal <UNSEAL_KEY_1>
 
 # Unseal with second key
+
 kubectl exec -n openbao openbao-0 -- bao operator unseal <UNSEAL_KEY_2>
 
 # Unseal with third key (reaches threshold)
+
 kubectl exec -n openbao openbao-0 -- bao operator unseal <UNSEAL_KEY_3>
 
 curl -s -k https://openbao.192.168.4.1.nip.io/v1/sys/health | jq
@@ -124,6 +143,7 @@ curl -s -k https://openbao.192.168.4.1.nip.io/v1/sys/health | jq
 hplmn domain: *.5gc.mnc070.mcc999.3gppnetwork.org
 
 vplmn domain: *.5gc.mnc01.mcc001.3gppnetwork.org
+```
 
 ## CLI install
 

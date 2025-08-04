@@ -21,7 +21,6 @@ cd $PACKETRUSHER
 go mod download
 go build cmd/packetrusher.go
 ./packetrusher --help
-```
 
 ## Config
 
