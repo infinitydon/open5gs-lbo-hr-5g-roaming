@@ -1,0 +1,106 @@
+show ikev2 profile
+show ikev2 sa
+show interface ipip0
+show ipsec all
+
+show ikev2 sa details
+show ipsec sa
+show interface ipip0
+show errors
+
+
+## Sample trace
+
+Packet 11
+
+00:15:51:004617: dpdk-input
+  ext rx queue 0
+  buffer 0xff8c48: current data 0, length 166, buffer-pool 0, ref-count 1, trace handle 0x100000a
+                   ext-hdr-valid
+  PKT MBUF: port 1, nb_segs 1, pkt_len 166
+    buf_len 2176, data_len 166, ol_flags 0x0, data_off 128, phys_addr 0xbfe31280
+    packet_type 0x0 l2_len 0 l3_len 0 outer_l2_len 0 outer_l3_len 0
+    rss 0x0 fdir.hi 0x0 fdir.lo 0x0
+  IP4: bc:24:11:38:2b:91 -> bc:24:11:15:84:86
+  IPSEC_ESP: 172.16.9.2 -> 172.16.10.2
+    tos 0x00, ttl 62, length 152, checksum 0x1110 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+00:15:51:004649: ethernet-input
+  frame: flags 0x1, hw-if-index 2, sw-if-index 2
+  IP4: bc:24:11:38:2b:91 -> bc:24:11:15:84:86
+00:15:51:004668: ip4-input
+  IPSEC_ESP: 172.16.9.2 -> 172.16.10.2
+    tos 0x00, ttl 62, length 152, checksum 0x1110 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+00:15:51:004673: ip4-lookup
+  fib 0 dpo-idx 6 flow hash: 0x00000000
+  IPSEC_ESP: 172.16.9.2 -> 172.16.10.2
+    tos 0x00, ttl 62, length 152, checksum 0x1110 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+00:15:51:004678: ip4-receive
+    fib:0 adj:6 flow:0x00000000
+  IPSEC_ESP: 172.16.9.2 -> 172.16.10.2
+    tos 0x00, ttl 62, length 152, checksum 0x1110 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+00:15:51:004684: ipsec4-tun-input
+  IPSec: remote:172.16.9.2 spi:3732246887 (0xde759167) sa:1 tun:0 seq 26
+00:15:51:004687: esp4-decrypt-tun
+  esp: crypto aes-gcm-256 integrity none pkt-seq 26 sa-seq 26 pkt-seq-hi 0
+00:15:51:004698: ip4-input-no-checksum
+  ICMP: 172.16.9.2 -> 192.168.2.1
+    tos 0x00, ttl 254, length 96, checksum 0x44e1 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+  ICMP echo_request checksum 0x960b id 32068
+00:15:51:004700: ip4-lookup
+  fib 0 dpo-idx 7 flow hash: 0x00000000
+  ICMP: 172.16.9.2 -> 192.168.2.1
+    tos 0x00, ttl 254, length 96, checksum 0x44e1 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+  ICMP echo_request checksum 0x960b id 32068
+00:15:51:004701: ip4-receive
+    fib:0 adj:7 flow:0x00000000
+  ICMP: 172.16.9.2 -> 192.168.2.1
+    tos 0x00, ttl 254, length 96, checksum 0x44e1 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+  ICMP echo_request checksum 0x960b id 32068
+00:15:51:004701: ip4-icmp-input
+  ICMP: 172.16.9.2 -> 192.168.2.1
+    tos 0x00, ttl 254, length 96, checksum 0x44e1 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+  ICMP echo_request checksum 0x960b id 32068
+00:15:51:004703: ip4-icmp-echo-request
+  ICMP: 172.16.9.2 -> 192.168.2.1
+    tos 0x00, ttl 254, length 96, checksum 0x44e1 dscp CS0 ecn NON_ECN
+    fragment id 0x0000
+  ICMP echo_request checksum 0x960b id 32068
+00:15:51:004706: ip4-load-balance
+  fib 0 dpo-idx 7 flow hash: 0x00000000
+  ICMP: 192.168.2.1 -> 172.16.9.2
+    tos 0x00, ttl 64, length 96, checksum 0xe3de dscp CS0 ecn NON_ECN
+    fragment id 0x1f03
+  ICMP echo_reply checksum 0x9e0b id 32068
+00:15:51:004707: ip4-rewrite
+  tx_sw_if_index 2 dpo-idx 7 : ipv4 via 172.16.10.1 ext: mtu:9001 next:5 flags:[] bc2411382b91bc24111584860800 flow hash: 0x00000000
+  00000000: bc2411382b91bc24111584860800450000601f0300004001e3dec0a80201ac10
+  00000020: 090200009e0b7d44001054ee4817de12000000010203040506070809
+00:15:51:004709: ext-output
+  ext flags 0x0218000d
+  IP4: bc:24:11:15:84:86 -> bc:24:11:38:2b:91
+  ICMP: 192.168.2.1 -> 172.16.9.2
+    tos 0x00, ttl 64, length 96, checksum 0xe3de dscp CS0 ecn NON_ECN
+    fragment id 0x1f03
+  ICMP echo_reply checksum 0x9e0b id 32068
+00:15:51:004712: ext-tx
+  ext tx queue 0
+  buffer 0xff8c48: current data 36, length 110, buffer-pool 0, ref-count 1, trace handle 0x100000a
+                   ext-hdr-valid
+                   local l2-hdr-offset 0 l3-hdr-offset 50
+  PKT MBUF: port 1, nb_segs 1, pkt_len 110
+    buf_len 2176, data_len 110, ol_flags 0x0, data_off 164, phys_addr 0xbfe31280
+    packet_type 0x0 l2_len 0 l3_len 0 outer_l2_len 0 outer_l3_len 0
+    rss 0x0 fdir.hi 0x0 fdir.lo 0x0
+  IP4: bc:24:11:15:84:86 -> bc:24:11:38:2b:91
+  ICMP: 192.168.2.1 -> 172.16.9.2
+    tos 0x00, ttl 64, length 96, checksum 0xe3de dscp CS0 ecn NON_ECN
+    fragment id 0x1f03
+  ICMP echo_reply checksum 0x9e0b id 32068

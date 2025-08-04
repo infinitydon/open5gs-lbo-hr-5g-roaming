@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-sepp-config
+  labels:
+    epc-mode: sepp
+data:
+  sepp.yaml: |
+    global:
+      max:
+        ue: 1024  
+    logger:
+        file:
+          path: /var/log/open5gs/sepp.log
+          #level: debug
+    sepp:
+      default:
+        tls:
+          server:
+            scheme: https
+            private_key: /tls-sbi/tls.key
+            cert: /tls-sbi/tls.crt
+            verify_client: true
+            verify_client_cacert: /tls-sbi/ca.crt
+          client:
+            scheme: https
+            cacert: /tls-sbi/ca.crt
+            client_private_key: /tls-sbi/tls.key
+            client_cert: /tls-sbi/tls.crt
+      sbi:
+        server:
+        - dev: sbi
+          advertise: sepp-sbi.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+        client:
+          scp:
+            - uri: https://scp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org:7777
+      n32:
+        server:
+          - sender: sepp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+            scheme: https
+            address: {{ .Values.sepp.control.multusControlIP }}
+            port: 443
+            private_key: /tls-ext/tls.key
+            cert: /tls-ext/tls.crt
+            verify_client: true
+            verify_client_cacert: /tls-ext/ca.crt
+            n32f:
+              scheme: https
+              address: {{ .Values.sepp.forward.multusForwardIP }}
+              port: 443
+              private_key: /tls-ext/tls.key
+              cert: /tls-ext/tls.crt
+              verify_client: true
+              verify_client_cacert: /tls-ext/ca.crt
+        client:
+          sepp:
+            - receiver: sepp.5gc.mnc{{ .Values.roamingPLMN.mnc }}.mcc{{ .Values.roamingPLMN.mcc }}.3gppnetwork.org
+              uri: https://sepp.5gc.mnc{{ .Values.roamingPLMN.mnc }}.mcc{{ .Values.roamingPLMN.mcc }}.3gppnetwork.org
+              resolve: {{ .Values.sepp.control.roamingSEPP2ControlIP }}
+              client_private_key: /tls-ext/tls.key
+              client_cert: /tls-ext/tls.crt
+              cacert: /tls-ext/ca.crt
+              n32f:
+                uri: https://sepp.5gc.mnc{{ .Values.roamingPLMN.mnc }}.mcc{{ .Values.roamingPLMN.mcc }}.3gppnetwork.org
+                resolve: {{ .Values.sepp.forward.roamingSEPP2forwardIP }}
+                cacert: /tls-ext/ca.crt
+                client_private_key: /tls-ext/tls.key
+                client_cert: /tls-ext/tls.crt

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    router: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      router: {{ .Release.Name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        router: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: frr
+        image: "{{ .Values.frr.repository }}:{{ .Values.frr.version }}"
+        imagePullPolicy: {{ .Values.frr.pullPolicy }}
+        securityContext:
+          privileged: true        
+        command: ["/bin/sh", "-c"]
+        args:
+        - sleep 20;
+          touch /etc/frr/vtysh.conf;
+          sed -i 's/bgpd=no/bgpd=yes/g' /etc/frr/daemons;
+          /usr/bin/tini --;
+          /usr/lib/frr/docker-start
+        volumeMounts:
+        - name: frr-config
+          mountPath: /etc/frr/frr.conf
+          subPath: "frr.conf"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 250Mi
+          requests:
+            cpu: 500m
+            memory: 250Mi      
+      - name: vpp-gateway
+        imagePullPolicy: {{ .Values.nfimage.pullPolicy }}
+        image: "{{ .Values.nfimage.repository }}:{{ .Values.nfimage.version }}"
+        command: ["/bin/sh", "-c"]
+        args:
+        - apt-get update;apt-get install iproute2 inetutils-ping vim -y;
+          /usr/local/bin/entrypoint.sh;
+          /usr/bin/vpp -c /etc/vpp-startup.conf
+        securityContext:
+          privileged: true 
+        volumeMounts:         
+        - name: vpp-startup-conf
+          mountPath: /tmp/startup.conf
+          subPath: startup.conf
+        - name: vpp-init-conf
+          mountPath: /etc/vpp/init.conf
+          subPath: init.conf
+        - name: entrypoint-script
+          mountPath: /usr/local/bin/entrypoint.sh
+          subPath: entrypoint.sh
+          readOnly: true
+        - name: hugepage
+          mountPath: /dev/hugepages
+        resources:
+          requests:
+            hugepages-1Gi: 2Gi
+            memory: {{ .Values.resources.requests.memory | quote }}
+            cpu: {{ .Values.resources.requests.cpu | quote }}
+          limits:
+            hugepages-1Gi: 2Gi
+            memory: {{ .Values.resources.limits.memory | quote }}
+            cpu: {{ .Values.resources.limits.cpu | quote }}        
+      volumes:
+      - name: vpp-startup-conf
+        configMap:
+          name: {{ .Release.Name }}-startup-conf
+      - name: vpp-init-conf
+        configMap:
+          name: {{ .Release.Name }}-init-conf
+      - name: frr-config
+        configMap:
+           name: {{ .Release.Name }}-frr-configmap
+      - name: entrypoint-script
+        configMap:
+          name: vpp-entrypoint
+          defaultMode: 0755
+      - name: hugepage
+        emptyDir:
+           medium: HugePages

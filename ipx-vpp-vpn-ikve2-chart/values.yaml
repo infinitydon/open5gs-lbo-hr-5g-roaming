@@ -1,0 +1,59 @@
+# Default values for oai-vpp-upf-tiny.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+frr:
+  repository: frrouting/frr
+  version: v8.4.1
+  # pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+nfimage:
+  repository: ghcr.io/infinitydon/vpp #ligato/vpp-base
+  version: v25.10-rc0-lcp #25.02
+  # pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+securityContext:
+  privileged: true
+
+config:
+  intIPAddress: "192.168.3.1"  
+  intInterfacePCI: "0000:00:14.0"
+  intNetMask: "24"
+  hinterfacePCI: "0000:00:15.0"
+  hIPAddress: "172.16.10.1"
+  hNetworkAddress: "172.16.10.0"
+  hNetMask: "24"
+  vinterfacePCI: "0000:00:16.0"
+  vIPAddress: "172.16.9.1"
+  vNetworkAddress: "172.16.9.0"
+  vNetMask: "24"
+  vUPFIPAddress: "172.16.9.2"
+  hUPFIPAddress: "172.16.10.2"
+  metalLBipAddress: "192.168.3.2"
+  metalLBipamPoolAdress: "192.168.4.0"
+  metalLBipamPoolNetMask: "24"
+  vUPFasn: "64512"
+  hUPFasn: "64514"
+  localBGPasn: "64513"
+
+resources:
+  define: false
+  limits:
+    cpu: 2
+    memory: 4Gi
+  requests:
+   cpu: 2
+   memory: 4Gi  
+
+readinessProbe: true
+
+livenessProbe: true
+
+terminationGracePeriodSeconds: 30

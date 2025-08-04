@@ -1,0 +1,43 @@
+kind: Certificate
+apiVersion: cert-manager.io/v1
+metadata:
+  name: vplmn-sepp-sbi-cert-2048
+spec:
+  commonName: sepp-sbi.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  dnsNames:
+    - sepp-sbi.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  duration: {{ .Values.certDuration }}
+  issuerRef:
+    name: openbao-issuer
+    kind: ClusterIssuer
+  renewBefore: {{ .Values.renewBefore }}
+  secretName: mtls-vplmn-sepp-sbi-cert
+  usages:
+    - server auth
+    - client auth
+  privateKey:
+    rotationPolicy: Always
+    algorithm: "RSA"
+    size: 2048
+---
+kind: Certificate
+apiVersion: cert-manager.io/v1
+metadata:
+  name: vplmn-sepp-ext-cert-2048
+spec:
+  commonName: sepp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  dnsNames:
+    - sepp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  duration: {{ .Values.certDuration }}
+  issuerRef:
+    name: vplmn-5g-issuer
+    kind: Issuer
+  renewBefore: {{ .Values.renewBefore }}
+  secretName: mtls-vplmn-sepp-ext-cert
+  usages:
+    - server auth
+    - client auth
+  privateKey:
+    rotationPolicy: Always
+    algorithm: "RSA"
+    size: 2048    

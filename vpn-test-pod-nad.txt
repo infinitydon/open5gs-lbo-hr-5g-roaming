@@ -1,0 +1,117 @@
+## Visiting NW
+
+kubectl apply -f - <<EOF
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: nad-pod-1
+spec:
+  config: '{
+    "cniVersion": "0.3.1",
+    "type": "macvlan",
+    "master": "ens19",
+    "mode": "bridge",
+    "ipam": {
+      "type": "static",
+      "addresses": [
+        {
+          "address": "192.168.1.2/24",
+          "gateway": "192.168.1.1"
+        }
+      ]
+    }
+  }'
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-1
+  annotations:
+    k8s.v1.cni.cncf.io/networks: nad-pod-1
+spec:
+  containers:
+  - name: netshoot
+    image: nicolaka/netshoot
+    command: ["sleep", "infinity"]
+    securityContext:
+      privileged: true
+EOF
+
+
+
+## Home NW
+
+kubectl apply -f - <<EOF
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: nad-pod-2
+spec:
+  config: '{
+    "cniVersion": "0.3.1",
+    "type": "macvlan",
+    "master": "ens19",
+    "mode": "bridge",
+    "ipam": {
+      "type": "static",
+      "addresses": [
+        {
+          "address": "192.168.2.2/24",
+          "gateway": "192.168.2.1"
+        }
+      ]
+    }
+  }'
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-2
+  annotations:
+    k8s.v1.cni.cncf.io/networks: nad-pod-2
+spec:
+  containers:
+  - name: netshoot
+    image: nicolaka/netshoot
+    command: ["sleep", "infinity"]
+    securityContext:
+      privileged: true
+EOF
+
+## IPX cluster to service LB access from vising and home networks
+kubectl apply -f - <<EOF
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+EOF

@@ -1,0 +1,125 @@
+# Default values for open5gs-epc-helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+open5gs:
+  image:
+    repository: ghcr.io/infinitydon/open5gs-aio
+    pullPolicy: IfNotPresent
+    tag: roaming-4e21cff
+
+webui:
+  image:
+    repository: ghcr.io/infinitydon/open5gs-web-gui
+    pullPolicy: IfNotPresent
+    tag: roaming-4e21cff
+
+ueImport:
+  image:
+    repository: free5gmano/nextepc-mongodb
+    pullPolicy: IfNotPresent
+    tag: "latest"     
+
+dnn: internet
+
+k8swait:
+  repository: groundnuty/k8s-wait-for
+  tag: v1.6
+  pullPolicy: IfNotPresent
+
+mongodb:
+  image:
+    repository: free5gmano/nextepc-mongodb
+    pullPolicy: IfNotPresent
+    tag: "latest"   
+
+k8s:
+  interface: eth0
+
+localPLMN:
+  mcc: "001"
+  mnc: "001"
+
+roamingPLMN:
+  mcc: 999
+  mnc: "070"
+
+ue:
+  imsi: "001010000000001"
+  imei: "356938035643803"
+  imeiSv: "4370816125816151"
+  op: "63bfa50ee6523365ff14c1f45f88737d"
+  secKey: "0C0A34601D4F07677303652C0462535B"
+  dnn: "internet"  
+
+amf:
+  tac: 7
+  networkName: Open5GS
+  multusMacVlanMasterInt: vlan200
+  ngapInt: net1
+  multusN2IP: 192.168.1.18
+  multusN2NetworkMask: 28
+  multusN2GW: 192.168.1.17
+
+smf:
+  multusMacVlanMasterInt: "vlan400"
+  N4Int: net1
+  multusN4IP: "192.168.1.34"
+  multusN4NetworkMask: 28
+  multusN4GW: "192.168.1.33"
+
+upf:
+  n3:
+    multusMacVlanMasterInt: "vlan100"
+    N3Int: net1
+    multusN3IP: "192.168.1.2"
+    multusN3NetworkMask: "28"
+    defaultGW: "192.168.1.1"
+    roamingUPFaddress: "192.168.2.2"
+  n4:
+    multusMacVlanMasterInt: "vlan400"
+    N4Int: net2
+    multusN4IP: "192.168.1.35"
+    multusN4NetworkMask: "28"
+    defaultGW: "192.168.1.33"
+  
+
+sepp:
+  control:
+    multusMacVlanMasterInt: vlan500    
+    multusNetworkMask: 28
+    multusControlIP: 192.168.1.66
+    defaultGW: 192.168.1.65
+    roamingSEPP2ControlIP: 192.168.2.66
+  forward:
+    multusMacVlanMasterInt: vlan600
+    multusForwardIP: 192.168.1.82
+    multusNetworkMask: 28
+    defaultGW: 192.168.1.81
+    roamingSEPP2forwardIP: 192.168.2.82
+
+sbiAddresses:
+  amf: 192.168.1.50
+  smf: 192.168.1.57
+  ausf: 192.168.1.52
+  udm: 192.168.1.53
+  udr: 192.168.1.54
+  bsf: 192.168.1.51
+  nrf: 192.168.1.60
+  nssf: 192.168.1.55
+  scp: 192.168.1.58
+  pcf: 192.168.1.56
+  sepp: 192.168.1.59
+  mongodb: 192.168.1.61
+  webui: 192.168.1.62
+  subscriberProvisioner: 192.168.1.13
+  defaultGW: 192.168.1.49
+  NetworkMask: 28
+  multusMacVlanMasterInt: vlan300
+
+roamingSBInetwork: "192.168.2.48/28"
+
+prometheus:
+  nodeExporter:
+     repository: quay.io/prometheus/node-exporter
+     tag: v1.3.1
+     pullPolicy: IfNotPresent

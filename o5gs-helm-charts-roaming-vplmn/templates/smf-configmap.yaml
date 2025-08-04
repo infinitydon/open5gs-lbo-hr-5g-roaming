@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-smf-config
+  labels:
+    epc-mode: smf
+data:
+  smf.yaml: |
+    global:
+      max:
+        ue: 1024  
+    logger:
+        file:
+          path: /var/log/open5gs/smf.log
+          #level: debug
+    parameter:
+        no_ipv6: true
+    smf:
+      default:
+        tls:
+          server:
+            scheme: https
+            private_key: /tls/tls.key
+            cert: /tls/tls.crt
+            verify_client: true
+            verify_client_cacert: /tls/ca.crt
+          client:
+            scheme: https
+            cacert: /tls/ca.crt
+            client_private_key: /tls/tls.key
+            client_cert: /tls/tls.crt
+      sbi:
+        server:
+        - dev: sbi
+          advertise: smf.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+        client:
+          scp:
+          - uri: https://scp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org:7777          
+      metrics:
+        server:
+        - dev: eth0
+          port: 9091          
+      pfcp:
+        server:
+          - dev: {{ .Values.smf.N4Int }}
+        client:
+          upf:
+          - address: {{ .Values.upf.n4.multusN4IP }}
+      gtpc:
+        server:
+        - dev: {{ .Values.smf.N4Int }}
+      gtpu:
+        server:
+        - dev: {{ .Values.smf.N4Int }}
+      session:
+      - subnet: 10.46.0.1/16
+        gateway: 10.46.0.1         
+      dns:
+        - 8.8.8.8
+        - 8.8.4.4
+      mtu: 1400

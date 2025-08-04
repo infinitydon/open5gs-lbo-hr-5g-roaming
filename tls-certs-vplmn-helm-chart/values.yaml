@@ -1,0 +1,19 @@
+certDuration: "720h"
+renewBefore: "3h"
+
+localPLMN:
+  mcc: "001"
+  mnc: "001"
+
+sbiAddresses:
+  amf: 192.168.1.50
+  smf: 192.168.1.57
+  ausf: 192.168.1.52
+  udm: 192.168.1.53
+  udr: 192.168.1.54
+  bsf: 192.168.1.51
+  nrf: 192.168.1.60
+  nssf: 192.168.1.55
+  scp: 192.168.1.58
+  pcf: 192.168.1.56
+  sepp-sbi: 192.168.1.59

@@ -1,0 +1,101 @@
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: amf-open5gs-sctp
+#  labels:
+#    epc-mode: amf
+#spec:
+#  type: NodePort
+#  selector:
+#    epc-mode: amf
+#  ports:
+#    - protocol: SCTP
+#      port: 38412
+#      targetPort: 38412
+#      nodePort: 30412
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: amf
+  labels:
+    epc-mode: amf
+spec:
+  selector:
+    epc-mode: amf
+  ports:
+    - protocol: TCP
+      port: 443   
+      targetPort: 443      
+---  
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-amf-deployment
+  labels:
+    epc-mode: amf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      epc-mode: amf
+  template:
+    metadata:
+      annotations:
+         k8s.v1.cni.cncf.io/networks: >-
+          [
+            { "name": "{{ .Release.Name }}-amf-nad" },
+            { "name": "{{ .Release.Name }}-sbi-nad",
+                    "interface": "sbi",
+                   "ips": [ {{- cat .Values.sbiAddresses.amf "/" .Values.sbiAddresses.NetworkMask | nospace | quote }} ] }            
+          ]     
+      labels:
+        epc-mode: amf
+        epc-prom: enabled
+    spec:
+      serviceAccountName: {{ .Release.Name }}-k8s-wait-for
+      initContainers:     
+      - name: wait-for-nrf
+        image: "{{ .Values.k8swait.repository }}:{{ .Values.k8swait.tag }}"
+        imagePullPolicy: {{ .Values.k8swait.pullPolicy }}
+        args:
+          - "pod"
+          - "-lepc-mode=nrf"
+      - name: wait-for-scp
+        image: "{{ .Values.k8swait.repository }}:{{ .Values.k8swait.tag }}"
+        imagePullPolicy: {{ .Values.k8swait.pullPolicy }}
+        args:
+          - "pod"
+          - "-lepc-mode=scp"          
+      containers:
+        - name: amf
+          image: "{{ .Values.open5gs.image.repository }}:{{ .Values.open5gs.image.tag }}"
+          imagePullPolicy: {{ .Values.open5gs.image.pullPolicy }}
+          ports:
+          - containerPort: 9091
+            name: prom
+            protocol: TCP
+          command: ["/bin/sh", "-c"]
+          args:
+          - ip route add {{ .Values.roamingSBInetwork }} via {{ .Values.sbiAddresses.defaultGW }};
+            open5gs-amfd -c /open5gs/config-map/amf.yaml;           
+          securityContext:
+             capabilities:
+               add:
+               - NET_ADMIN
+          volumeMounts:
+          - name: {{ .Release.Name }}-amf-config
+            mountPath: /open5gs/config-map/amf.yaml
+            subPath: "amf.yaml"
+          - mountPath: "/tls"
+            name: tls            
+      {{- if .Values.controlPlaneNodes}}
+      nodeSelector: {{- .Values.controlPlaneNodes.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}      
+      volumes:
+        - name: {{ .Release.Name }}-amf-config
+          configMap:
+            name: {{ .Release.Name }}-amf-config
+        - name: tls
+          secret:
+            secretName: mtls-vplmn-amf-cert

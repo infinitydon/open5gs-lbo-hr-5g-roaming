@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-frr-configmap
+  labels:
+    app: frr
+data:
+  frr.conf: |
+      router bgp {{ .Values.config.localBGPasn }}
+       neighbor {{ .Values.config.ipxGateway }} remote-as {{ .Values.config.ipxBGPasn }}
+       no bgp ebgp-requires-policy
+       !
+       address-family ipv4 unicast
+        network {{ .Values.config.n3n9.nwAddress }}
+        network {{ .Values.config.sbi.nwAddress }}
+        network {{ .Values.config.seppControl.nwAddress }}
+        network {{ .Values.config.seppForward.nwAddress }}
+        network {{ .Values.config.k8sPodNWtoIPXlb.nwAddress }}
+        neighbor {{ .Values.config.ipxGateway }} activate        
+       exit-address-family 
+      !
+      line vty
+      !
+      end

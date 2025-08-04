@@ -1,0 +1,21 @@
+kind: Certificate
+apiVersion: cert-manager.io/v1
+metadata:
+  name: vplmn-scp-cert-2048
+spec:
+  commonName: scp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  dnsNames:
+    - scp.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  duration: {{ .Values.certDuration }}
+  issuerRef:
+    name: openbao-issuer
+    kind: ClusterIssuer
+  renewBefore: {{ .Values.renewBefore }}
+  secretName: mtls-vplmn-scp-cert
+  usages:
+    - server auth
+    - client auth
+  privateKey:
+    rotationPolicy: Always
+    algorithm: "RSA"
+    size: 2048

@@ -1,0 +1,16 @@
+apiVersion: v1
+name: vpp-gateway
+description: A Helm chart for VPP Gateway as network function
+
+type: application
+
+version: 1.0.0
+
+appVersion: 22.10
+
+keywords:
+  - EPC
+  - 4G
+  - 5G
+  - BGP
+  - GRE

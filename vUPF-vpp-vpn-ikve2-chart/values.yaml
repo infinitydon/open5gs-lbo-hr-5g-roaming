@@ -1,0 +1,75 @@
+# Default values for oai-vpp-upf-tiny.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+frr:
+  repository: frrouting/frr
+  version: v8.4.1
+  # pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+nfimage:
+  repository: ghcr.io/infinitydon/vpp #ligato/vpp-base
+  version: v25.10-rc0-lcp #25.02
+  # pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+securityContext:
+  privileged: true
+
+config:
+  n3n9:
+    vlan: "100"
+    IPAddress: "192.168.1.1/28"
+    nwAddress: "192.168.1.0/28"
+  sbi:
+    vlan: "300"
+    IPAddress: "192.168.1.49/28"
+    nwAddress: "192.168.1.48/28"
+  seppControl:
+    vlan: "500"
+    IPAddress: "192.168.1.65/28"
+    nwAddress: "192.168.1.64/28"
+  seppForward:    
+    vlan: "600"
+    IPAddress: "192.168.1.81/28"
+    nwAddress: "192.168.1.80/28"
+  k8sPodNWtoIPXlb:
+    vlan: "700"
+    IPAddress: "192.168.1.97/28"
+    nwAddress: "192.168.1.96/28"
+  intInterfacePCI: "0000:00:13.0"
+  intNetMask: "24"
+  extInterfacePCI: "0000:00:14.0"
+  extIPAddress: "172.16.9.2"
+  extNetMask: "24"
+  ipxGateway: "172.16.9.1"
+  vpnRemoteIPAddress: "172.16.10.2"
+  localUPFnetworkRangeStart: "192.168.1.1"
+  localUPFnetworkRangeStop: "192.168.1.2"
+  remoteUPFnetworkRangeStart: "192.168.2.1"
+  remoteUPFnetworkRangeStop: "192.168.2.2"
+  remoteUPFAddress: "192.168.2.2"
+  remoteUPFnetMask: "32"
+  localBGPasn: "64512"
+  ipxBGPasn: "64513"
+
+resources:
+  define: false
+  limits:
+    cpu: 2
+    memory: 4Gi
+  requests:
+   cpu: 2
+   memory: 4Gi  
+
+readinessProbe: true
+
+livenessProbe: true
+
+terminationGracePeriodSeconds: 30

@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scp
+  labels:
+    epc-mode: scp
+spec:
+  selector:
+    epc-mode: scp
+  ports:
+    - protocol: TCP
+      port: 443 
+      targetPort: 443  
+---  
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-scp-deployment 
+  labels:
+    epc-mode: scp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      epc-mode: scp
+  template:
+    metadata:
+      annotations:
+         k8s.v1.cni.cncf.io/networks: '[
+                 { "name": "{{ .Release.Name }}-sbi-nad",
+                    "interface": "sbi",
+                   "ips": [ {{- cat .Values.sbiAddresses.scp "/" .Values.sbiAddresses.NetworkMask | nospace | quote }} ] }                   
+         ]'    
+      labels:
+        epc-mode: scp
+    spec:
+      serviceAccountName: {{ .Release.Name }}-k8s-wait-for
+      initContainers:     
+      - name: wait-for-nrf
+        image: "{{ .Values.k8swait.repository }}:{{ .Values.k8swait.tag }}"
+        imagePullPolicy: {{ .Values.k8swait.pullPolicy }}
+        args:
+          - "pod"
+          - "-lepc-mode=nrf"            
+      containers:
+        - name: scp
+          image: "{{ .Values.open5gs.image.repository }}:{{ .Values.open5gs.image.tag }}"
+          imagePullPolicy: {{ .Values.open5gs.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+          - ip route add {{ .Values.roamingSBInetwork }} via {{ .Values.sbiAddresses.defaultGW }};
+            open5gs-scpd -c /open5gs/config-map/scp.yaml; 
+          volumeMounts:
+          - name: {{ .Release.Name }}-scp-config
+            mountPath: /open5gs/config-map/scp.yaml
+            subPath: "scp.yaml"           
+          - mountPath: "/tls"
+            name: tls
+          securityContext:
+             capabilities:
+               add:
+               - NET_ADMIN             
+      volumes:
+        - name: {{ .Release.Name }}-scp-config
+          configMap:
+            name: {{ .Release.Name }}-scp-config           
+        - name: tls
+          secret:
+            secretName: mtls-hplmn-scp-cert

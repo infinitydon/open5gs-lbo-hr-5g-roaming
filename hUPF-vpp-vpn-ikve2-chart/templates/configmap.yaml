@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-init-conf
+data:
+  init.conf: |
+    lcp create ext host-if ext
+    set interface mtu 9001 ext
+    set interface mtu 9001 int
+    # Bring up the physical interface
+    set interface state int up
+
+    lcp create int host-if int
+    # VLAN 100 - n3n9
+    create sub int {{ .Values.config.n3n9.vlan }}
+    set interface ip address int.{{ .Values.config.n3n9.vlan }} {{ .Values.config.n3n9.IPAddress }}
+    set interface state int.{{ .Values.config.n3n9.vlan }} up
+
+    # VLAN 300 - sbi
+    create sub int {{ .Values.config.sbi.vlan }}
+    set interface ip address int.{{ .Values.config.sbi.vlan }} {{ .Values.config.sbi.IPAddress }}
+    set interface state int.{{ .Values.config.sbi.vlan }} up
+
+    # VLAN 500 - seppControl
+    create sub int {{ .Values.config.seppControl.vlan }}
+    set interface ip address int.{{ .Values.config.seppControl.vlan }} {{ .Values.config.seppControl.IPAddress }}
+    set interface state int.{{ .Values.config.seppControl.vlan }} up
+
+    # VLAN 600 - seppForward
+    create sub int {{ .Values.config.seppForward.vlan }}
+    set interface ip address int.{{ .Values.config.seppForward.vlan }} {{ .Values.config.seppForward.IPAddress }}
+    set interface state int.{{ .Values.config.seppForward.vlan }} up
+
+    # VLAN 700 - k8sPodNWtoIPXlb
+    create sub int {{ .Values.config.k8sPodNWtoIPXlb.vlan }}
+    set interface ip address int.{{ .Values.config.k8sPodNWtoIPXlb.vlan }} {{ .Values.config.k8sPodNWtoIPXlb.IPAddress }}
+    set interface state int.{{ .Values.config.k8sPodNWtoIPXlb.vlan }} up
+
+    set interface ip address ext {{ .Values.config.extIPAddress }}/{{ .Values.config.extNetMask }}
+    set interface state ext up
+    ikev2 profile add pr1
+    ikev2 profile set pr1 auth shared-key-mic string Vpp123
+    ikev2 profile set pr1 id local ip4-addr {{ .Values.config.extIPAddress }}
+    ikev2 profile set pr1 id remote ip4-addr {{ .Values.config.vpnRemoteIPAddress }}
+    ikev2 profile set pr1 traffic-selector remote ip-range {{ .Values.config.remoteUPFnetworkRangeStart }} - {{ .Values.config.remoteUPFnetworkRangeStop }} port-range 0 - 65535 protocol 0
+    ikev2 profile set pr1 traffic-selector local ip-range {{ .Values.config.localUPFnetworkRangeStart }} - {{ .Values.config.localUPFnetworkRangeStop }} port-range 0 - 65535 protocol 0
+    create ipip tunnel src {{ .Values.config.extIPAddress }} dst {{ .Values.config.vpnRemoteIPAddress }}
+    ikev2 profile set pr1 tunnel ipip0
+    ip route add {{ .Values.config.remoteUPFAddress }}/{{ .Values.config.remoteUPFnetMask }} via {{ .Values.config.vpnRemoteIPAddress }} ipip0
+    set interface unnumbered ipip0 use ext  
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-startup-conf
+data:
+  startup.conf: |
+      unix {
+        nodaemon
+        log /tmp/vpp.log
+        full-coredump
+        gid vpp
+        interactive
+        cli-listen /run/vpp/cli.sock
+        exec /etc/vpp/init.conf
+      }
+
+      cpu {
+        main-core CORE1
+        corelist-workers CORE2
+      }
+
+      memory {
+        main-heap-size 2G
+      }
+      api-trace {
+        on
+      }
+
+      buffers {
+        buffers-per-numa 128000
+        default data-size 2048
+        page-size default-hugepage
+      }
+
+      dpdk {
+       dev {{ .Values.config.intInterfacePCI }} {name int}
+       dev {{ .Values.config.extInterfacePCI }} {name ext}
+      }
+
+      api-segment {
+        gid vpp
+      }
+
+      plugins {
+        path /usr/lib/x86_64-linux-gnu/vpp_plugins/
+        plugin dpdk_plugin.so { enable }
+        plugin linux_cp_plugin.so { disable }
+        plugin linux_nl_plugin.so { disable }
+        plugin lcpng_if_plugin.so { enable }
+        plugin lcpng_nl_plugin.so { enable }
+      }
+
+      lcpng {
+        lcp-sync
+        lcp-auto-subint
+      }
+
+      logging {
+        default-log-level info
+        default-syslog-log-level crit
+        class linux-cp/if { rate-limit 10000 level debug syslog-level debug }
+        class linux-cp/nl { rate-limit 10000 level debug syslog-level debug }
+      }

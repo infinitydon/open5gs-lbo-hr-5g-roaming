@@ -1,0 +1,18 @@
+certDuration: "720h"
+renewBefore: "3h"
+
+localPLMN:
+  mcc: 999
+  mnc: "070"
+
+sbiAddresses:
+  smf: 192.168.2.57
+  ausf: 192.168.2.52
+  udm: 192.168.2.53
+  udr: 192.168.2.54
+  bsf: 192.168.2.51
+  nrf: 192.168.2.60
+  nssf: 192.168.2.55
+  scp: 192.168.2.58
+  pcf: 192.168.2.56
+  sepp-sbi: 192.168.2.59

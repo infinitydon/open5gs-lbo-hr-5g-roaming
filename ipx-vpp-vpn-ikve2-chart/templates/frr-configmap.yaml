@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-frr-configmap
+  labels:
+    app: frr
+data:
+  frr.conf: |
+      router bgp {{ .Values.config.localBGPasn }}
+       neighbor {{ .Values.config.vUPFIPAddress }} remote-as {{ .Values.config.vUPFasn }}
+       neighbor {{ .Values.config.hUPFIPAddress }} remote-as {{ .Values.config.hUPFasn }}
+       neighbor {{ .Values.config.metalLBipAddress }} remote-as {{ .Values.config.localBGPasn }}
+       no bgp ebgp-requires-policy
+       !
+       address-family ipv4 unicast
+         network {{ .Values.config.hNetworkAddress }}/{{ .Values.config.hNetMask }}
+         network {{ .Values.config.vNetworkAddress }}/{{ .Values.config.vNetMask }}
+         network {{ .Values.config.metalLBipamPoolAdress }}/{{ .Values.config.metalLBipamPoolNetMask }}
+         neighbor {{ .Values.config.vUPFIPAddress }} activate
+         neighbor {{ .Values.config.hUPFIPAddress }} activate
+         neighbor {{ .Values.config.metalLBipAddress }} activate
+       exit-address-family       
+      !
+      line vty
+      !
+      end

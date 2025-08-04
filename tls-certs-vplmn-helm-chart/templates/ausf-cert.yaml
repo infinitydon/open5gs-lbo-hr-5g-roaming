@@ -1,0 +1,23 @@
+kind: Certificate
+apiVersion: cert-manager.io/v1
+metadata:
+  name: vplmn-ausf-cert-2048
+spec:
+  commonName: ausf.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  dnsNames:
+    - ausf.5gc.mnc{{ .Values.localPLMN.mnc }}.mcc{{ .Values.localPLMN.mcc }}.3gppnetwork.org
+  ipAddresses:
+    - "{{ .Values.sbiAddresses.ausf }}"
+  duration: {{ .Values.certDuration }}
+  issuerRef:
+    name: openbao-issuer
+    kind: ClusterIssuer
+  renewBefore: {{ .Values.renewBefore }}
+  secretName: mtls-vplmn-ausf-cert
+  usages:
+    - server auth
+    - client auth
+  privateKey:
+    rotationPolicy: Always
+    algorithm: "RSA"
+    size: 2048

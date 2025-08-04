@@ -1,0 +1,135 @@
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-amf-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": {{- cat .Values.amf.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static",
+          "addresses": [
+                  {
+                    "address": {{- cat .Values.amf.multusN2IP "/" .Values.amf.multusN2NetworkMask | nospace | quote }}
+                  }
+          ]
+        }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-smf-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": {{- cat .Values.smf.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static",
+          "addresses": [
+                  {
+                    "address": {{- cat .Values.smf.multusN4IP "/" .Values.smf.multusN4NetworkMask | nospace | quote }}
+                  }
+          ]
+        }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-upf-n3-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": {{- cat .Values.upf.n3.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static",
+          "addresses": [
+                  {
+                    "address": {{- cat .Values.upf.n3.multusN3IP "/" .Values.upf.n3.multusN3NetworkMask | nospace | quote }}
+                  }
+          ]
+        }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-upf-n4-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": {{- cat .Values.upf.n4.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static",
+          "addresses": [
+                  {
+                    "address": {{- cat .Values.upf.n4.multusN4IP "/" .Values.upf.n4.multusN4NetworkMask | nospace | quote }}
+                  }
+          ]
+        }
+    }'    
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-sepp-control-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": {{- cat .Values.sepp.control.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static",
+          "addresses": [
+                  {
+                    "address": {{- cat .Values.sepp.control.multusControlIP "/" .Values.sepp.control.multusNetworkMask | nospace | quote }}
+                  }
+          ]
+        }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-sepp-forward-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": {{- cat .Values.sepp.forward.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static",
+          "addresses": [
+                  {
+                    "address": {{- cat .Values.sepp.forward.multusForwardIP "/" .Values.sepp.forward.multusNetworkMask | nospace | quote }}
+                  }
+          ]
+        }
+    }'
+---
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: {{ .Release.Name }}-sbi-nad
+spec:
+  config: '{
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "capabilities": { "ips": true },
+      "master": {{- cat .Values.sbiAddresses.multusMacVlanMasterInt | nospace | quote }},
+      "mode": "bridge",
+      "ipam": {
+          "type": "static"
+        }
+    }'     
